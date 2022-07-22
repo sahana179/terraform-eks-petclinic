@@ -1,9 +1,9 @@
 
-resource "kubernetes_deployment" "nginx" {
+resource "kubernetes_deployment" "petclinic" {
   metadata {
-    name = "nginx"
+    name = "petclinic"
     labels = {
-      App = "nginx"
+      App = "petclinic"
     }
   }
 
@@ -11,22 +11,22 @@ resource "kubernetes_deployment" "nginx" {
     replicas = 1
     selector {
       match_labels = {
-        App = "nginx"
+        App = "petclinic"
       }
     }
     template {
       metadata {
         labels = {
-          App = "nginx"
+          App = "petclinic"
         }
       }
       spec {
         container {
-          image = "nginx:1.14.2"
-          name  = "nginx"
+          image = "springcommunity/spring-framework-petclinic:5.3.0"
+          name  = "petclinic"
 
           port {
-            container_port = 80
+            container_port = 8080
           }
 
         }
@@ -36,17 +36,17 @@ resource "kubernetes_deployment" "nginx" {
 }
 
 
-resource "kubernetes_service" "nginx" {
+resource "kubernetes_service" "petclinic" {
   metadata {
-    name = "nginx"
+    name = "petclinic"
   }
   spec {
     selector = {
-      App = kubernetes_deployment.nginx.spec.0.template.0.metadata[0].labels.App
+      App = kubernetes_deployment.petclinics.spec.0.template.0.metadata[0].labels.App
     }
     port {
-      port        = 80
-      target_port = 80
+      port        = 8080
+      target_port = 8080
     }
 
     type = "LoadBalancer"
