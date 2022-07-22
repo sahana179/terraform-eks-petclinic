@@ -1,9 +1,9 @@
 
-resource "kubernetes_deployment" "weatherapi" {
+resource "kubernetes_deployment" "nginx" {
   metadata {
-    name = "weatherapi"
+    name = "nginx"
     labels = {
-      App = "weatherapi"
+      App = "nginx"
     }
   }
 
@@ -11,19 +11,19 @@ resource "kubernetes_deployment" "weatherapi" {
     replicas = 1
     selector {
       match_labels = {
-        App = "weatherapi"
+        App = "nginx"
       }
     }
     template {
       metadata {
         labels = {
-          App = "weatherapi"
+          App = "nginx"
         }
       }
       spec {
         container {
-          image = "knagu/weatherapi"
-          name  = "weatherapi"
+          image = "nginx:1.14.2"
+          name  = "nginx"
 
           port {
             container_port = 80
@@ -36,13 +36,13 @@ resource "kubernetes_deployment" "weatherapi" {
 }
 
 
-resource "kubernetes_service" "weatherapi" {
+resource "kubernetes_service" "nginx" {
   metadata {
-    name = "weatherapi"
+    name = "nginx"
   }
   spec {
     selector = {
-      App = kubernetes_deployment.weatherapi.spec.0.template.0.metadata[0].labels.App
+      App = kubernetes_deployment.nginx.spec.0.template.0.metadata[0].labels.App
     }
     port {
       port        = 80
