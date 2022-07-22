@@ -1,3 +1,35 @@
+data "terraform_remote_state" "ecr" {
+  backend = "s3"
+    config = {
+        bucket  = "sahana-assessment-terraform-state"
+        key     = "dev/terraform-state"
+        region  = var.aws_region
+    }
+}
+
+locals {
+  registry_server = "https://${data.terraform_remote_state.ecr.outputs.ecr_registry_id}.dkr.ecr.us-west-2.amazonaws.com"
+  image_name = "${data.terraform_remote_state.ecr.outputs.ecr_repository_url}:${var.docker_build_tag}"  
+}
+
+resource "kubernetes_secret" "docker" {
+  metadata {
+    name = "secret-ecrregistry"
+  }
+  data = {
+    ".dockerconfigjson" = <<DOCKER
+{
+  "auths": {
+    "${local.registry_server}": {
+      "auth": "${base64encode("${var.registry_username}:${var.registry_password}")}"
+    }
+  }
+}
+DOCKER
+  }
+  type = "kubernetes.io/dockerconfigjson"
+}
+
 
 resource "kubernetes_deployment" "petclinic" {
   metadata {
@@ -21,8 +53,11 @@ resource "kubernetes_deployment" "petclinic" {
         }
       }
       spec {
+        image_pull_secrets {
+          name = "secret-ecrregistry"
+        } 
         container {
-          image = "springcommunity/spring-framework-petclinic:5.3.0"
+          image = local.image_name
           name  = "petclinic"
 
           port {
@@ -42,7 +77,7 @@ resource "kubernetes_service" "petclinic" {
   }
   spec {
     selector = {
-      App = kubernetes_deployment.petclinics.spec.0.template.0.metadata[0].labels.App
+      App = kubernetes_deployment.petclinic.spec.0.template.0.metadata[0].labels.App
     }
     port {
       port        = 8080
