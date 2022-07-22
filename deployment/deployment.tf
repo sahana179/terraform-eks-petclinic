@@ -1,3 +1,7 @@
+##########################################################
+########## DATA SOURCE FOR ECR ###########################
+##########################################################
+
 data "terraform_remote_state" "ecr" {
   backend = "s3"
     config = {
@@ -7,10 +11,18 @@ data "terraform_remote_state" "ecr" {
     }
 }
 
+##########################################################
+########## LOCAL VARIABLES ###############################
+##########################################################
+
 locals {
   registry_server = "https://${data.terraform_remote_state.ecr.outputs.ecr_registry_id}.dkr.ecr.us-west-2.amazonaws.com"
   image_name = "${data.terraform_remote_state.ecr.outputs.ecr_repository_url}:${var.docker_build_tag}"  
 }
+
+##########################################################
+########## SECRET FOR DOCKER ###############################
+##########################################################
 
 resource "kubernetes_secret" "docker" {
   metadata {
@@ -30,6 +42,9 @@ DOCKER
   type = "kubernetes.io/dockerconfigjson"
 }
 
+##########################################################
+########## K8's Deployment ###############################
+##########################################################
 
 resource "kubernetes_deployment" "petclinic" {
   metadata {
@@ -70,6 +85,9 @@ resource "kubernetes_deployment" "petclinic" {
   }
 }
 
+##########################################################
+########## K8's Service ###############################
+##########################################################
 
 resource "kubernetes_service" "petclinic" {
   metadata {

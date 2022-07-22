@@ -1,3 +1,7 @@
+##########################################################
+########## SECURITY GROUP FOR NODES ######################
+##########################################################
+
 resource "aws_security_group" "worker_group" {
   name   = "${var.prefix}-${var.project}-${var.env}-sg-eucentral1-workergroup"
   vpc_id = var.vpc_id
@@ -23,6 +27,9 @@ resource "aws_security_group" "worker_group" {
   }
 }
 
+##########################################################
+########## EKS CLUSTER CREATION ######################
+##########################################################
 
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
